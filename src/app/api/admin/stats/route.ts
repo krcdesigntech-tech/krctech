@@ -35,19 +35,20 @@ export async function GET() {
     .order('created_at', { ascending: true })
 
   // Aggregate by date and action
-  const daily: Record<string, { date: string; logins: number; chats: number; uploads: number }> = {}
+  const daily: Record<string, { date: string; logins: number; views: number; chats: number; uploads: number }> = {}
 
   for (let i = 29; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
     const key = d.toISOString().slice(0, 10)
-    daily[key] = { date: key, logins: 0, chats: 0, uploads: 0 }
+    daily[key] = { date: key, logins: 0, views: 0, chats: 0, uploads: 0 }
   }
 
   for (const log of logs ?? []) {
     const key = (log.created_at as string).slice(0, 10)
     if (!daily[key]) continue
     if (log.action === 'login') daily[key].logins++
+    else if (log.action === 'page_view') daily[key].views++
     else if (log.action === 'chat_message') daily[key].chats++
     else if (log.action === 'document_upload') daily[key].uploads++
   }
