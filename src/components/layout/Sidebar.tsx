@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, MessageSquare, Search, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, FileText, MessageSquare, Search, Settings, LogOut, ShieldCheck } from 'lucide-react'
 import { clsx } from 'clsx'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -14,7 +14,11 @@ const NAV_ITEMS = [
   { href: '/search', label: '문서 검색', icon: Search },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  role?: 'engineer' | 'manager' | 'admin'
+}
+
+export function Sidebar({ role = 'engineer' }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -40,7 +44,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
           return (
@@ -59,6 +63,27 @@ export function Sidebar() {
             </Link>
           )
         })}
+
+        {/* Admin menu */}
+        {role === 'admin' && (
+          <div className="pt-3 mt-3 border-t border-gray-100">
+            <p className="px-3 pb-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              관리자
+            </p>
+            <Link
+              href="/admin"
+              className={clsx(
+                'flex items-center gap-3 px-3 py-2.5 rounded-btn text-sm font-medium transition-colors',
+                pathname === '/admin' || pathname.startsWith('/admin/')
+                  ? 'bg-primary-light text-primary'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              )}
+            >
+              <ShieldCheck size={18} />
+              관리자 패널
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* Bottom actions */}
