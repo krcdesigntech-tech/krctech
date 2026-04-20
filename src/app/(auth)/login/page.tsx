@@ -55,9 +55,11 @@ export default function LoginPage() {
 
       <Button
         type="button"
+        variant="secondary"
+        size="lg"
         onClick={handleGoogleLogin}
         loading={loading}
-        className="w-full flex items-center justify-center gap-3 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-gray-400"
+        className="w-full gap-3"
       >
         {!loading && <GoogleIcon />}
         Google로 로그인
