@@ -48,6 +48,9 @@ const config: Config = {
       width: {
         sidebar: "240px",
       },
+      spacing: {
+        sidebar: "240px",
+      },
     },
   },
   plugins: [],
