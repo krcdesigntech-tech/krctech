@@ -8,10 +8,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: '대시보드', icon: LayoutDashboard },
-  { href: '/documents', label: '문서 관리', icon: FileText },
-  { href: '/chat', label: 'AI 질문', icon: MessageSquare },
-  { href: '/search', label: '문서 검색', icon: Search },
+  { href: '/dashboard', label: '대시보드', icon: LayoutDashboard, adminOnly: false },
+  { href: '/documents', label: '문서 관리', icon: FileText, adminOnly: true },
+  { href: '/chat', label: 'AI 질문', icon: MessageSquare, adminOnly: false },
+  { href: '/search', label: '문서 검색', icon: Search, adminOnly: false },
 ]
 
 interface SidebarProps {
@@ -45,7 +45,7 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {NAV_ITEMS.filter(({ adminOnly }) => !adminOnly || role === 'admin').map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
