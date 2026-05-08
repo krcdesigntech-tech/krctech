@@ -1,20 +1,25 @@
 import type { HfMessage } from '@/lib/huggingface/generation'
 import type { MatchedChunk } from '@/types/database.types'
+import type { LegalContextBlock } from '@/lib/law/rag-augmentor'
+import { formatLegalBlocksForPrompt } from '@/lib/law/rag-augmentor'
 
 const SYSTEM_PROMPT = `당신은 대한민국 토목설계 전문가 AI입니다.
-업로드된 설계 문서를 기반으로 정확하고 전문적인 답변을 제공합니다.
+업로드된 설계 문서와 법제처 국가법령정보 OPEN API에서 실시간 조회한 법령 조문을
+근거로 정확하고 전문적인 답변을 제공합니다.
 
 [규칙]
-1. 반드시 제공된 문서 내용에 근거하여 답변하세요.
-2. 문서에 없는 내용은 "제공된 문서에서 해당 정보를 찾을 수 없습니다"라고 명시하세요.
-3. 관련 조항이나 기준을 인용할 때 출처 문서명과 페이지를 명시하세요.
-4. 수치, 규격, 기준값은 정확하게 인용하세요.
-5. 한국어로 답변하세요.`
+1. 반드시 제공된 문서 내용 또는 법령 조문에 근거하여 답변하세요.
+2. 자료에 없는 내용은 "제공된 자료에서 해당 정보를 찾을 수 없습니다"라고 명시하세요.
+3. 관련 조항이나 기준을 인용할 때 출처 문서명·쪽수, 또는 법령명·조문 번호·시행일을 명시하세요.
+4. 법령 조문이 PDF 작성 이후 개정된 경우, 사용자에게 변경 사실을 안내하세요.
+5. 수치, 규격, 기준값은 정확하게 인용하세요.
+6. 한국어로 답변하세요.`
 
 export function buildMessages(
   userQuestion: string,
   retrievedChunks: MatchedChunk[],
-  chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>
+  chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>,
+  legalBlocks: LegalContextBlock[] = []
 ): HfMessage[] {
   // Build context from retrieved chunks
   const contextParts = retrievedChunks.map((chunk, i) => {
@@ -23,9 +28,12 @@ export function buildMessages(
     return `[출처 ${i + 1}: ${source}${page}]\n${chunk.content}`
   })
 
-  const contextText = contextParts.length
+  const documentContext = contextParts.length
     ? `다음은 관련 문서 내용입니다:\n\n${contextParts.join('\n\n---\n\n')}`
     : '관련 문서를 찾을 수 없습니다.'
+
+  const legalContext = formatLegalBlocksForPrompt(legalBlocks)
+  const fullContext = legalContext ? `${documentContext}\n\n===\n\n${legalContext}` : documentContext
 
   const messages: HfMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },
@@ -38,7 +46,7 @@ export function buildMessages(
   // Add current question with context
   messages.push({
     role: 'user',
-    content: `${contextText}\n\n질문: ${userQuestion}`,
+    content: `${fullContext}\n\n질문: ${userQuestion}`,
   })
 
   return messages

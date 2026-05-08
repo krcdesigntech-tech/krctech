@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, MessageSquare, Search, Settings, LogOut, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, FileText, MessageSquare, Search, Settings, LogOut, ShieldCheck, Scale } from 'lucide-react'
 import { clsx } from 'clsx'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 const NAV_ITEMS = [
   { href: '/dashboard', label: '대시보드', icon: LayoutDashboard, adminOnly: false },
   { href: '/documents', label: '문서 관리', icon: FileText, adminOnly: true },
+  { href: '/legal', label: '관계법령', icon: Scale, adminOnly: false },
   { href: '/chat', label: 'AI 질문', icon: MessageSquare, adminOnly: false },
   { href: '/search', label: '문서 검색', icon: Search, adminOnly: false },
 ]
@@ -74,13 +75,25 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
               href="/admin"
               className={clsx(
                 'flex items-center gap-3 px-3 py-2.5 rounded-btn text-sm font-medium transition-colors',
-                pathname === '/admin' || pathname.startsWith('/admin/')
+                pathname === '/admin' || (pathname.startsWith('/admin/') && !pathname.startsWith('/admin/legal'))
                   ? 'bg-primary-light text-primary'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
               <ShieldCheck size={18} />
               관리자 패널
+            </Link>
+            <Link
+              href="/admin/legal"
+              className={clsx(
+                'flex items-center gap-3 px-3 py-2.5 rounded-btn text-sm font-medium transition-colors',
+                pathname.startsWith('/admin/legal')
+                  ? 'bg-primary-light text-primary'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              )}
+            >
+              <Scale size={18} />
+              법령 매핑
             </Link>
           </div>
         )}

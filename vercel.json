@@ -3,6 +3,14 @@
     "src/app/api/process/**/*.ts": { "maxDuration": 60 },
     "src/app/api/chat/**/messages/route.ts": { "maxDuration": 60 },
     "src/app/api/search/route.ts": { "maxDuration": 30 },
+    "src/app/api/legal/admin/sync-pdf/route.ts": { "maxDuration": 60 },
+    "src/app/api/legal/admin/refresh-all/route.ts": { "maxDuration": 300 },
     "src/app/api/**/*.ts": { "maxDuration": 15 }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/legal/admin/refresh-all",
+      "schedule": "0 18 * * *"
+    }
+  ]
 }
