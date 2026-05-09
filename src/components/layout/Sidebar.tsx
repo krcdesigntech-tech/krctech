@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, MessageSquare, Search, Settings, LogOut, ShieldCheck, Scale } from 'lucide-react'
+import { LayoutDashboard, FileText, MessageSquare, Search, Settings, LogOut, ShieldCheck, Scale, Bot } from 'lucide-react'
 import { clsx } from 'clsx'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '/documents', label: '문서 관리', icon: FileText, adminOnly: true },
   { href: '/legal', label: '관계법령', icon: Scale, adminOnly: false },
   { href: '/chat', label: 'AI 질문', icon: MessageSquare, adminOnly: false },
+  { href: '/ask', label: 'AI 봇', icon: Bot, adminOnly: false },
   { href: '/search', label: '문서 검색', icon: Search, adminOnly: false },
 ]
 
