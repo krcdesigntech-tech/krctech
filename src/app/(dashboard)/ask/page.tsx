@@ -10,7 +10,11 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = (url: string) =>
+  fetch(url).then((r) => {
+    if (!r.ok) throw new Error(`${r.status}`)
+    return r.json()
+  })
 
 interface BotQuestion {
   id: string
@@ -52,7 +56,7 @@ export default function AskPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const { data, isLoading, mutate } = useSWR<{ questions: BotQuestion[] }>(
+  const { data, error: loadError, isLoading, mutate } = useSWR<{ questions: BotQuestion[] }>(
     '/api/bot/ask',
     fetcher,
     {
@@ -108,6 +112,7 @@ export default function AskPage() {
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="질문을 입력하세요..."
               rows={4}
+              maxLength={2000}
               disabled={submitting}
               className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed"
             />
@@ -127,6 +132,10 @@ export default function AskPage() {
           <div className="flex justify-center py-16">
             <Spinner size="lg" />
           </div>
+        ) : loadError ? (
+          <Card padding="lg" className="text-center py-12">
+            <p className="text-sm text-red-500">질문 목록을 불러오지 못했습니다.</p>
+          </Card>
         ) : questions.length === 0 ? (
           <Card padding="lg" className="text-center py-16">
             <Bot size={48} className="text-gray-200 mx-auto mb-4" />

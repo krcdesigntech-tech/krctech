@@ -23,6 +23,10 @@ CREATE POLICY "Users can view own questions"
   ON public.bot_questions FOR SELECT
   USING (auth.uid() = user_id);
 
+CREATE POLICY "Service role can select all questions"
+  ON public.bot_questions FOR SELECT
+  USING (auth.role() = 'service_role');
+
 CREATE POLICY "Users can insert own questions"
   ON public.bot_questions FOR INSERT
   WITH CHECK (auth.uid() = user_id);

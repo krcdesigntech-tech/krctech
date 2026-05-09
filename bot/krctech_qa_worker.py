@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """KRCTech Q&A 봇 워커.
-회원이 /ask 페이지에 제출한 질문을 폴링해서 Codex CLI로 처리한다.
+회원이 /ask 페이지에 제출한 질문을 폴링해서 서버 RAG 파이프라인으로 처리한다.
 
 환경변수 (bot/.env 에서 로드):
   KRCTECH_API_BASE        - krctech 서버 URL (예: https://krcglobal.vercel.app/api)
   WORKER_SECRET           - 워커 인증 토큰 (krctech의 WORKER_SECRET과 동일값)
-  CODEX_CLI               - codex CLI 경로 (없으면 자동 탐색)
   QA_WORKER_IDLE_SEC      - 폴링 대기 초 (기본: 60)
   QA_WORKER_CONCURRENCY   - 동시 처리 수 (기본: 2)
 """
@@ -14,8 +13,6 @@
 import fcntl
 import logging
 import os
-import shutil
-import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -40,24 +37,6 @@ WORKER_SECRET: str = os.environ.get("WORKER_SECRET", "")
 IDLE_SLEEP_SEC: int = int(os.environ.get("QA_WORKER_IDLE_SEC", "60"))
 CONCURRENCY: int = int(os.environ.get("QA_WORKER_CONCURRENCY", "2"))
 WORKER_ID: str = "krctech-qa-worker"
-
-# ---------------------------------------------------------------------------
-# Codex CLI 탐색
-# ---------------------------------------------------------------------------
-def _find_codex() -> str | None:
-    if _env := os.environ.get("CODEX_CLI", "").strip():
-        return _env if Path(_env).is_file() else None
-    candidates = [
-        shutil.which("codex"),
-        str(Path.home() / ".npm-global" / "bin" / "codex"),
-        str(Path.home() / ".npm" / "bin" / "codex"),
-    ]
-    for c in candidates:
-        if c and Path(c).is_file():
-            return c
-    return None
-
-CODEX_CLI: str | None = _find_codex()
 
 # ---------------------------------------------------------------------------
 # 로깅
@@ -91,89 +70,25 @@ def _headers() -> dict:
 
 
 def _get(path: str, **params) -> dict:
-    return requests.get(
+    resp = requests.get(
         f"{KRCTECH_BASE}{path}",
         headers=_headers(),
         params=params,
         timeout=15,
-    ).json()
+    )
+    resp.raise_for_status()
+    return resp.json()
 
 
-def _post(path: str, **kwargs) -> dict:
-    return requests.post(
+def _post(path: str, timeout: int = 60, **kwargs) -> dict:
+    resp = requests.post(
         f"{KRCTECH_BASE}{path}",
         headers=_headers(),
-        timeout=60,
-        **kwargs,
-    ).json()
-
-
-# ---------------------------------------------------------------------------
-# Codex 실행
-# ---------------------------------------------------------------------------
-def run_codex(prompt: str, timeout: int = 300) -> str:
-    if not CODEX_CLI:
-        raise RuntimeError("codex CLI를 찾을 수 없습니다.")
-    result = subprocess.run(
-        [CODEX_CLI, "exec", "--sandbox", "workspace-write", "--skip-git-repo-check", prompt],
-        capture_output=True,
-        text=True,
         timeout=timeout,
-        stdin=subprocess.DEVNULL,
-        cwd=str(BASE_DIR),
+        **kwargs,
     )
-    if result.returncode != 0:
-        stderr = result.stderr.strip()[:500]
-        raise RuntimeError(
-            f"codex 실행 실패 (rc={result.returncode}): {stderr or '(stderr 없음)'}"
-        )
-    return result.stdout.strip()
-
-
-# ---------------------------------------------------------------------------
-# RAG 컨텍스트 조회
-# ---------------------------------------------------------------------------
-def fetch_rag_context(question: str) -> str:
-    try:
-        data = requests.get(
-            f"{KRCTECH_BASE}/search",
-            params={"q": question},
-            headers=_headers(),
-            timeout=15,
-        ).json()
-        chunks = data.get("chunks", [])
-        if not chunks:
-            return ""
-        lines = ["[관련 문서 컨텍스트]"]
-        for i, c in enumerate(chunks[:5], 1):
-            content = c.get("content", "").strip()[:500]
-            source = c.get("document_name", "")
-            lines.append(f"\n[{i}] {source}\n{content}")
-        return "\n".join(lines)
-    except Exception as e:
-        logger.warning(f"RAG 컨텍스트 조회 실패: {e}")
-        return ""
-
-
-# ---------------------------------------------------------------------------
-# 질문 처리
-# ---------------------------------------------------------------------------
-def handle_question(qid: str, question: str) -> str:
-    logger.info(f"[{qid}] 질문 처리 시작: {question[:80]!r}")
-    rag_context = fetch_rag_context(question)
-
-    rag_section = f"\n{rag_context}\n" if rag_context else ""
-    prompt = (
-        "너는 KRC(한국농어촌공사) 해외사업 관련 전문 AI 어시스턴트다.\n"
-        "아래 질문에 친절하고 정확하게 답변해줘.\n"
-        f"{rag_section}\n"
-        f"질문: {question}\n\n"
-        "답변 (한국어로):"
-    )
-
-    answer = run_codex(prompt)
-    logger.info(f"[{qid}] 답변 생성 완료 ({len(answer)}자)")
-    return answer
+    resp.raise_for_status()
+    return resp.json()
 
 
 def _run_one(q: dict) -> bool:
@@ -181,35 +96,50 @@ def _run_one(q: dict) -> bool:
     question = q["question"]
 
     # 1. claim
-    claim_resp = _post(
-        "/bot/worker",
-        json={"action": "claim", "id": qid, "worker_id": WORKER_ID},
-    )
+    try:
+        claim_resp = _post(
+            "/bot/worker",
+            json={"action": "claim", "id": qid, "worker_id": WORKER_ID},
+        )
+    except requests.HTTPError as e:
+        status = e.response.status_code if e.response is not None else "unknown"
+        if status in (404, 409):
+            logger.info(f"[{qid}] 다른 워커가 이미 처리 중입니다.")
+        else:
+            logger.warning(f"[{qid}] claim 요청 실패: {e}")
+        return False
+
     if "ok" not in claim_resp:
         logger.warning(f"[{qid}] claim 실패: {claim_resp}")
         return False
 
-    rag_context = fetch_rag_context(question)
-
     try:
-        answer = handle_question(qid, question)
-        _post(
+        logger.info(f"[{qid}] 서버 RAG 답변 생성 요청: {question[:80]!r}")
+        answer_resp = _post(
             "/bot/worker",
+            timeout=180,
             json={
-                "action": "complete",
+                "action": "answer",
                 "id": qid,
-                "answer": answer,
-                "rag_context": rag_context,
+                "worker_id": WORKER_ID,
             },
         )
-        logger.info(f"[{qid}] complete 전송 완료")
+        logger.info(f"[{qid}] 답변 생성 완료: {answer_resp}")
         return True
     except Exception as e:
         logger.error(f"[{qid}] 처리 실패: {e}")
-        _post(
-            "/bot/worker",
-            json={"action": "fail", "id": qid, "error": str(e)[:500]},
-        )
+        try:
+            _post(
+                "/bot/worker",
+                json={
+                    "action": "fail",
+                    "id": qid,
+                    "error": str(e)[:500],
+                    "worker_id": WORKER_ID,
+                },
+            )
+        except Exception:
+            pass
         return False
 
 
@@ -256,7 +186,7 @@ def main() -> None:
     logger.info(
         f"KRCTech QA Worker 시작 — base={KRCTECH_BASE}, "
         f"idle={IDLE_SLEEP_SEC}s, concurrency={CONCURRENCY}, "
-        f"codex={CODEX_CLI or '(없음)'}"
+        "mode=server-rag"
     )
 
     try:

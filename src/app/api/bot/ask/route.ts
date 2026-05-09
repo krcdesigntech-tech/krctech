@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
   if (!question || typeof question !== 'string' || question.trim() === '') {
     return NextResponse.json({ error: 'question is required' }, { status: 400 })
   }
+  if (question.length > 2000) {
+    return NextResponse.json({ error: 'question is too long (max 2000 characters)' }, { status: 400 })
+  }
 
   const { data, error } = await supabase
     .from('bot_questions')
@@ -32,7 +35,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ id: data.id }, { status: 201 })
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

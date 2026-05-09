@@ -41,4 +41,15 @@ export async function* generateStream(
     }
   }
 }
+
+export async function generateText(
+  messages: HfMessage[],
+  maxTokens = 1024
+): Promise<string> {
+  let output = ''
+  for await (const token of generateStream(messages, maxTokens)) {
+    output += token
+  }
+  return output.trim()
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
