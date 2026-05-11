@@ -91,3 +91,19 @@ export interface ChatMessage {
   latency_ms: number | null
   created_at: string
 }
+
+export type BotQuestionStatus = 'pending' | 'processing' | 'completed' | 'failed'
+
+export interface BotQuestion {
+  id: string
+  user_id: string
+  question: string
+  answer: string | null
+  status: BotQuestionStatus
+  error: string | null
+  rag_context: string | null
+  created_at: string
+  answered_at: string | null
+  claimed_at?: string | null
+  lease_expires_at?: string | null
+}

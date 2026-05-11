@@ -18,6 +18,11 @@ export async function POST(
 
   if (!user) return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
 
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') {
+    return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 })
+  }
+
   // Get document metadata
   const { data: doc } = await supabase
     .from('documents')

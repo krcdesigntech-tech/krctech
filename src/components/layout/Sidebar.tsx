@@ -2,22 +2,33 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, MessageSquare, Search, Settings, LogOut, ShieldCheck, Scale, Bot } from 'lucide-react'
+import { Home, FileText, Search, Settings, LogOut, ShieldCheck, Scale, Sparkles } from 'lucide-react'
 import { clsx } from 'clsx'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: '대시보드', icon: LayoutDashboard, adminOnly: false },
-  { href: '/documents', label: '문서 관리', icon: FileText, adminOnly: true },
+  { href: '/dashboard', label: '홈', icon: Home, adminOnly: false },
+  { href: '/ai', label: 'AI 어시스턴트', icon: Sparkles, adminOnly: false },
   { href: '/legal', label: '관계법령', icon: Scale, adminOnly: false },
-  { href: '/chat', label: 'AI 질문', icon: MessageSquare, adminOnly: false },
-  { href: '/ask', label: 'AI 봇', icon: Bot, adminOnly: false },
-  { href: '/search', label: '문서 검색', icon: Search, adminOnly: false },
+  { href: '/documents', label: '문서', icon: FileText, adminOnly: false },
+  { href: '/search', label: '검색', icon: Search, adminOnly: false },
 ]
 
 interface SidebarProps {
   role?: 'engineer' | 'manager' | 'admin'
+}
+
+function isNavActive(href: string, pathname: string): boolean {
+  if (href === '/ai') {
+    return (
+      pathname === '/ai' ||
+      pathname.startsWith('/ai/') ||
+      pathname.startsWith('/chat') ||
+      pathname.startsWith('/ask')
+    )
+  }
+  return pathname === href || pathname.startsWith(`${href}/`)
 }
 
 export function Sidebar({ role = 'engineer' }: SidebarProps) {
@@ -48,7 +59,7 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.filter(({ adminOnly }) => !adminOnly || role === 'admin').map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href || pathname.startsWith(href + '/')
+          const isActive = isNavActive(href, pathname)
           return (
             <Link
               key={href}
