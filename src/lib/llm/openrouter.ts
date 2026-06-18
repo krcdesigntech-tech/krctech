@@ -1,11 +1,11 @@
 /**
- * OpenRouter chat-completions client (server-side only).
+ * 답변 생성 (서버 전용) — OpenAI 호환 멀티 제공자 폴백.
  *
- * 생성(답변)은 OpenRouter 무료 모델 폴백 체인으로만 한다 (참고: 수자원법령 ask.ts).
- * Gemini는 임베딩 전용 (`@/lib/llm/gemini-embeddings`).
+ * 제공자 순서: Groq(무료·고한도) → OpenRouter(무료 체인 + 유료 폴백).
+ * 키가 없는 제공자는 자동 건너뛴다. 임베딩은 HuggingFace(`@/lib/llm/hf-embeddings`).
  *
- * 시그니처는 기존 `@/lib/huggingface/generation`과 호환된다
- * (`generateStream`, `generateText`, `LlmMessage`).
+ * 시그니처는 기존과 호환: `generateStream`, `generateText`, `LlmMessage`.
+ * (파일명은 호환을 위해 유지)
  */
 
 import {
@@ -14,6 +14,7 @@ import {
   OPENROUTER_PASSES,
   OPENROUTER_RETRY_WAIT_MS,
 } from './openrouter-models'
+import { GROQ_BASE, GROQ_MODELS } from './groq-models'
 
 export type LlmMessage = {
   role: 'user' | 'assistant' | 'system'
@@ -23,10 +24,19 @@ export type LlmMessage = {
 /** 기존 HuggingFace 모듈과의 호환 alias. */
 export type HfMessage = LlmMessage
 
-function getApiKey(): string {
-  const key = process.env.OPENROUTER_API_KEY
-  if (!key) throw new Error('OPENROUTER_API_KEY env var is not set')
-  return key
+interface Provider {
+  name: string
+  base: string
+  apiKey: () => string | undefined
+  models: string[]
+}
+
+/** 키가 설정된 제공자만 순서대로 사용. */
+function providers(): Provider[] {
+  return [
+    { name: 'groq', base: GROQ_BASE, apiKey: () => process.env.GROQ_API_KEY, models: GROQ_MODELS },
+    { name: 'openrouter', base: OPENROUTER_BASE, apiKey: () => process.env.OPENROUTER_API_KEY, models: OPENROUTER_MODELS },
+  ].filter((p) => !!p.apiKey())
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -36,13 +46,13 @@ interface RequestOpts {
   maxTokens: number
 }
 
-async function openChatRequest(model: string, messages: LlmMessage[], opts: RequestOpts) {
-  return fetch(`${OPENROUTER_BASE}/chat/completions`, {
+async function chatRequest(p: Provider, model: string, messages: LlmMessage[], opts: RequestOpts) {
+  return fetch(`${p.base}/chat/completions`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${getApiKey()}`,
+      Authorization: `Bearer ${p.apiKey()}`,
       'Content-Type': 'application/json',
-      // OpenRouter 권장 식별 헤더 (선택).
+      // OpenRouter 권장 헤더 (다른 제공자는 무시).
       'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
       'X-Title': 'KRCTech Legal QA',
     },
@@ -56,30 +66,37 @@ async function openChatRequest(model: string, messages: LlmMessage[], opts: Requ
   })
 }
 
+/** (provider, model) 조합을 순회하는 평탄화 목록. */
+function chain(): Array<{ p: Provider; model: string }> {
+  const out: Array<{ p: Provider; model: string }> = []
+  for (const p of providers()) for (const model of p.models) out.push({ p, model })
+  return out
+}
+
 /**
- * 스트리밍 생성. 모델 체인을 순회하며 첫 토큰을 내보내는 모델로 확정한다.
- * 어떤 모델도 토큰을 내보내지 못하면 마지막 오류를 throw 한다.
+ * 스트리밍 생성. Groq → OpenRouter 순서로 첫 토큰을 내보내는 모델에 확정.
  */
 export async function* generateStream(
   messages: LlmMessage[],
   maxTokens = 1024
 ): AsyncGenerator<string> {
+  const combos = chain()
+  if (!combos.length) throw new Error('생성 제공자 키가 없습니다 (GROQ_API_KEY / OPENROUTER_API_KEY).')
   let lastErr = 'unknown'
 
   for (let pass = 0; pass < OPENROUTER_PASSES; pass++) {
     if (pass > 0) await sleep(OPENROUTER_RETRY_WAIT_MS)
 
-    for (const model of OPENROUTER_MODELS) {
+    for (const { p, model } of combos) {
       let res: Response
       try {
-        res = await openChatRequest(model, messages, { stream: true, maxTokens })
+        res = await chatRequest(p, model, messages, { stream: true, maxTokens })
       } catch (e) {
-        lastErr = `${model} → ${(e as Error)?.message}`
+        lastErr = `${p.name}/${model} → ${(e as Error)?.message}`
         continue
       }
-
       if (!res.ok || !res.body) {
-        lastErr = `${model} → HTTP ${res.status}`
+        lastErr = `${p.name}/${model} → HTTP ${res.status}`
         continue
       }
 
@@ -90,39 +107,33 @@ export async function* generateStream(
           yield token
         }
       } catch (e) {
-        // 토큰을 이미 내보낸 뒤 끊기면 폴백이 불가능하므로 종료한다.
         if (yieldedAny) return
-        lastErr = `${model} → stream error: ${(e as Error)?.message}`
+        lastErr = `${p.name}/${model} → stream error: ${(e as Error)?.message}`
         continue
       }
-
       if (yieldedAny) return
-      lastErr = `${model} → empty`
+      lastErr = `${p.name}/${model} → empty`
     }
   }
 
-  throw new Error(`OpenRouter 무료 모델 응답 실패. 마지막 오류: ${lastErr}`)
+  throw new Error(`생성 실패(모든 제공자/모델 소진). 마지막 오류: ${lastErr}`)
 }
 
-/** SSE 본문을 파싱해 delta content 토큰을 순차 방출. comment/빈 라인은 무시. */
+/** SSE 본문 → delta content 토큰. comment/빈 라인 무시. */
 async function* parseSseStream(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
   const reader = body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
-
   try {
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
       buffer += decoder.decode(value, { stream: true })
-
       const lines = buffer.split('\n')
       buffer = lines.pop() ?? ''
-
       for (const raw of lines) {
         const line = raw.trim()
-        if (!line) continue
-        if (line.startsWith(':')) continue // OpenRouter keep-alive comment
+        if (!line || line.startsWith(':')) continue
         if (!line.startsWith('data:')) continue
         const data = line.slice(5).trim()
         if (!data || data === '[DONE]') continue
@@ -131,7 +142,7 @@ async function* parseSseStream(body: ReadableStream<Uint8Array>): AsyncGenerator
           const delta = json?.choices?.[0]?.delta?.content
           if (delta) yield delta as string
         } catch {
-          // 분할된 JSON 조각 — 무시 (다음 청크에서 이어짐)
+          /* 분할 JSON 조각 — 무시 */
         }
       }
     }
@@ -140,29 +151,29 @@ async function* parseSseStream(body: ReadableStream<Uint8Array>): AsyncGenerator
   }
 }
 
-/** 비스트리밍 누적 텍스트. 스트림과 동일 폴백 체인을 사용한다. */
+/** 비스트리밍 누적 텍스트. 동일 제공자 체인 사용. */
 export async function generateText(messages: LlmMessage[], maxTokens = 1024): Promise<string> {
+  const combos = chain()
+  if (!combos.length) throw new Error('생성 제공자 키가 없습니다 (GROQ_API_KEY / OPENROUTER_API_KEY).')
   let lastErr = 'unknown'
 
   for (let pass = 0; pass < OPENROUTER_PASSES; pass++) {
     if (pass > 0) await sleep(OPENROUTER_RETRY_WAIT_MS)
-
-    for (const model of OPENROUTER_MODELS) {
+    for (const { p, model } of combos) {
       try {
-        const res = await openChatRequest(model, messages, { stream: false, maxTokens })
+        const res = await chatRequest(p, model, messages, { stream: false, maxTokens })
         if (!res.ok) {
-          lastErr = `${model} → HTTP ${res.status}`
+          lastErr = `${p.name}/${model} → HTTP ${res.status}`
           continue
         }
         const json = await res.json()
         const content = (json?.choices?.[0]?.message?.content ?? '').trim()
         if (content) return content
-        lastErr = `${model} → empty`
+        lastErr = `${p.name}/${model} → empty`
       } catch (e) {
-        lastErr = `${model} → ${(e as Error)?.message}`
+        lastErr = `${p.name}/${model} → ${(e as Error)?.message}`
       }
     }
   }
-
-  throw new Error(`OpenRouter 무료 모델 응답 실패. 마지막 오류: ${lastErr}`)
+  throw new Error(`생성 실패(모든 제공자/모델 소진). 마지막 오류: ${lastErr}`)
 }
