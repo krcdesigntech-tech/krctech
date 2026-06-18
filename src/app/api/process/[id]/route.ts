@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { getR2ObjectBuffer } from '@/lib/r2/client'
 import { parseDocument, getFileTypeFromExtension, SupportedFileType } from '@/lib/document-processor'
 import { chunkText } from '@/lib/document-processor/chunker'
-import { embedTexts } from '@/lib/huggingface/embeddings'
+import { embedTexts } from '@/lib/llm/hf-embeddings'
 
 export const maxDuration = 60
 

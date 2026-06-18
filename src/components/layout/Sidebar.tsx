@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, FileText, Search, Settings, LogOut, ShieldCheck, Scale, Sparkles } from 'lucide-react'
+import { Home, FileText, Search, Settings, LogOut, ShieldCheck, Scale } from 'lucide-react'
 import { clsx } from 'clsx'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: '홈', icon: Home, adminOnly: false },
-  { href: '/ai', label: 'AI 어시스턴트', icon: Sparkles, adminOnly: false },
   { href: '/legal', label: '관계법령', icon: Scale, adminOnly: false },
   { href: '/documents', label: '문서', icon: FileText, adminOnly: false },
   { href: '/search', label: '검색', icon: Search, adminOnly: false },
@@ -24,8 +23,7 @@ function isNavActive(href: string, pathname: string): boolean {
     return (
       pathname === '/ai' ||
       pathname.startsWith('/ai/') ||
-      pathname.startsWith('/chat') ||
-      pathname.startsWith('/ask')
+      pathname.startsWith('/chat')
     )
   }
   return pathname === href || pathname.startsWith(`${href}/`)

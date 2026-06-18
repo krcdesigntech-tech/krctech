@@ -103,7 +103,7 @@ export async function POST(
               role: 'assistant',
               content: fullResponse,
               source_chunks: retrievedChunks,
-              model_used: 'Qwen/Qwen2.5-7B-Instruct',
+              model_used: 'openrouter:free-chain',
               latency_ms: latency,
             })
             .select('id')

@@ -1,4 +1,4 @@
-import type { HfMessage } from '@/lib/huggingface/generation'
+import type { LlmMessage } from '@/lib/llm/openrouter'
 import type { MatchedChunk } from '@/types/database.types'
 import type { LegalContextBlock } from '@/lib/law/rag-augmentor'
 import { formatLegalBlocksForPrompt } from '@/lib/law/rag-augmentor'
@@ -20,7 +20,7 @@ export function buildMessages(
   retrievedChunks: MatchedChunk[],
   chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>,
   legalBlocks: LegalContextBlock[] = []
-): HfMessage[] {
+): LlmMessage[] {
   // Build context from retrieved chunks
   const contextParts = retrievedChunks.map((chunk, i) => {
     const source = chunk.document_name
@@ -35,7 +35,7 @@ export function buildMessages(
   const legalContext = formatLegalBlocksForPrompt(legalBlocks)
   const fullContext = legalContext ? `${documentContext}\n\n===\n\n${legalContext}` : documentContext
 
-  const messages: HfMessage[] = [
+  const messages: LlmMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },
   ]
 

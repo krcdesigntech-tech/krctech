@@ -19,6 +19,7 @@
 
 import { parsePdf } from '@/lib/document-processor/pdf-parser'
 import { canonicalizeLawName, normalizeLawName } from './name-canonicalizer'
+import { LAW_BRACKET, ARTICLE_REF, classifyApiTarget } from './reference-extractor'
 import type { LegalCategory } from '@/types/law.types'
 
 export interface TopicSeed {
@@ -137,23 +138,7 @@ function parseTOC(rawTOC: string): TopicSeed[] {
 }
 
 // ── Phase 2: Body scanner ───────────────────────────────────────────────────
-
-/** Match "「<law name>」" — the PDF uses corner brackets for law titles. */
-const LAW_BRACKET = /「([^」]{2,80})」/g
-
-/** Match article references: "제9조", "제33조의2", "제33조 제2항". */
-const ARTICLE_REF =
-  /제\s*\d+\s*조(?:의\s*\d+)?(?:\s*제\s*\d+\s*항)?/g
-
-/** Heuristic: classify a name into law vs admin-rule vs external. */
-function classifyApiTarget(name: string): 'law' | 'admrul' | 'external' {
-  const compact = normalizeLawName(name)
-  // Pure law/시행령/시행규칙
-  if (/(법|법률|시행령|시행규칙)$/.test(compact)) return 'law'
-  // 행정규칙·고시·예규·훈령·지침·요령·기준
-  if (/(고시|예규|훈령|지침|요령|기준|규정)$/.test(compact)) return 'admrul'
-  return 'external'
-}
+// LAW_BRACKET / ARTICLE_REF / classifyApiTarget 는 reference-extractor 공통 헬퍼 사용.
 
 function buildReferences(
   topic: TopicSeed,
