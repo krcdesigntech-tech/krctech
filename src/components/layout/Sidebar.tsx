@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: '홈', icon: Home, adminOnly: false },
-  { href: '/legal', label: '관계법령', icon: Scale, adminOnly: false },
+  { href: '/legal', label: '법령AI', icon: Scale, adminOnly: false },
   { href: '/documents', label: '문서', icon: FileText, adminOnly: false },
   { href: '/search', label: '검색', icon: Search, adminOnly: false },
 ]

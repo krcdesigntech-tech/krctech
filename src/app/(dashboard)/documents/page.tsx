@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { DocumentsClient } from '@/components/documents/DocumentsClient'
+import { DocumentsTabs } from '@/components/documents/DocumentsTabs'
 
 export default async function DocumentsPage() {
   const supabase = await createClient()
@@ -17,5 +17,5 @@ export default async function DocumentsPage() {
 
   const isAdmin = profile?.role === 'admin'
 
-  return <DocumentsClient isAdmin={isAdmin} />
+  return <DocumentsTabs isAdmin={isAdmin} />
 }

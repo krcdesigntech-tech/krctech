@@ -75,7 +75,7 @@ export default async function LegalIndexPage() {
 
   return (
     <div>
-      <Header title="관계법령" />
+      <Header title="법령AI" />
       <div className="max-w-container mx-auto px-6 py-6">
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">

@@ -27,9 +27,11 @@ function formatBytes(bytes: number): string {
 
 interface DocumentsClientProps {
   isAdmin: boolean
+  /** 탭 래퍼(DocumentsTabs) 안에서 쓸 때 자체 Header를 숨긴다. */
+  embedded?: boolean
 }
 
-export function DocumentsClient({ isAdmin }: DocumentsClientProps) {
+export function DocumentsClient({ isAdmin, embedded = false }: DocumentsClientProps) {
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [deleteTarget, setDeleteTarget] = useState<Document | null>(null)
@@ -61,16 +63,18 @@ export function DocumentsClient({ isAdmin }: DocumentsClientProps) {
 
   return (
     <div>
-      <Header
-        title={isAdmin ? '문서 관리' : '문서'}
-        actions={
-          isAdmin ? (
-            <Link href="/documents/upload">
-              <Button icon={<Plus size={16} />}>문서 업로드</Button>
-            </Link>
-          ) : undefined
-        }
-      />
+      {!embedded && (
+        <Header
+          title={isAdmin ? '문서 관리' : '문서'}
+          actions={
+            isAdmin ? (
+              <Link href="/documents/upload">
+                <Button icon={<Plus size={16} />}>문서 업로드</Button>
+              </Link>
+            ) : undefined
+          }
+        />
+      )}
       <div className="max-w-container mx-auto px-6 py-6">
         {/* Filters */}
         <div className="flex items-center gap-3 mb-6">
