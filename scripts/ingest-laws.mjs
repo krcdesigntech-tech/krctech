@@ -64,6 +64,23 @@ function sb() {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+// Supabase 호출 재시도 (일시적 fetch failed / 5xx 대응).
+async function dbRetry(fn, attempts = 4) {
+  let last
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fn()
+      if (res && res.error) last = new Error(res.error.message)
+      else return res
+    } catch (e) {
+      last = e
+    }
+    await sleep(Math.min(1000 * 2 ** i, 8000))
+  }
+  throw last
+}
+
 const sha256 = async (text) => {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
@@ -353,8 +370,7 @@ async function main() {
       continue
     }
 
-    // 기존 청크 교체 후 삽입
-    await db.from('law_chunks').delete().eq('law_id', lawRow.id)
+    // 기존 청크 교체 후 삽입 (일시적 네트워크 오류는 재시도, 그래도 실패하면 이 법령만 건너뜀)
     const rows = chunks.map((c, i) => ({
       law_id: lawRow.id,
       chunk_index: c.chunk_index,
@@ -364,10 +380,19 @@ async function main() {
       embedding: embeddings[i],
       metadata: { kind: c.kind },
     }))
-    for (let i = 0; i < rows.length; i += 50) {
-      const batch = rows.slice(i, i + 50)
-      const { error } = await db.from('law_chunks').insert(batch)
-      if (error) throw new Error(`law_chunks insert: ${error.message}`)
+    try {
+      await dbRetry(() => db.from('law_chunks').delete().eq('law_id', lawRow.id))
+      for (let i = 0; i < rows.length; i += 50) {
+        const batch = rows.slice(i, i + 50)
+        await dbRetry(() => db.from('law_chunks').insert(batch))
+      }
+    } catch (e) {
+      console.warn('[insert] error', group.canonical, e.message)
+      await db.from('law_match_failures').insert({
+        law_name: group.canonical, api_target: 'law', reason: `청크 저장 실패: ${e.message}`,
+      }).catch(() => {})
+      stats.failure++
+      continue
     }
     stats.embedded += rows.length
 
