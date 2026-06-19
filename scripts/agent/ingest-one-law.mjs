@@ -7,7 +7,7 @@
  * HF 임베딩(hf-embeddings). 법제처 API 외 임의 텍스트는 저장하지 않는다.
  */
 import { db, args, sleep } from './_shared.mjs'
-import { searchLaw, getWholeLaw, splitArticle, sha256 } from '../lib/lawgokr.mjs'
+import { searchLaw, getWholeLaw, splitArticle, sha256, pickBestHit } from '../lib/lawgokr.mjs'
 import { embedDocuments } from '../../src/lib/llm/hf-embeddings.ts'
 
 const A = args()
@@ -25,10 +25,11 @@ export async function ingestOneLaw(sb, { name, lawId }, dry = false) {
   } else {
     const hits = await searchLaw(name)
     await sleep(150)
-    if (!hits.length || (!hits[0].law_id && !hits[0].mst)) {
+    // 정확일치 우선(법제처 fuzzy가 유사법령을 1순위로 줄 수 있음)
+    top = pickBestHit(hits, name) || hits[0]
+    if (!top || (!top.law_id && !top.mst)) {
       return { ok: false, reason: '법제처 검색 결과 없음', candidate_hits: hits }
     }
-    top = hits[0]
   }
 
   // 2) 전문 fetch

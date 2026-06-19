@@ -80,6 +80,29 @@ function parseDate(s) {
   return d.length === 8 ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}` : null
 }
 
+const normName = (s) => (s || '').replace(/\s+/g, '').replace(/[「」·ㆍ]/g, '')
+
+/** 노이즈 문자열에서 끝의 법령명 토큰 추출. 예: "…이설공사비는 농어촌정비법" → "농어촌정비법". */
+export function extractLawToken(name) {
+  const n = (name || '').trim()
+  const m = n.match(/([가-힣A-Za-z·ㆍ]{2,40}(?:법률|법|시행령|시행규칙))\s*$/)
+  return m ? m[1].trim() : n
+}
+
+/** 검색 결과에서 정확일치(정규화) 우선, 없으면 4자 연속 겹침, 없으면 null. */
+export function pickBestHit(hits, queryName) {
+  if (!hits || !hits.length) return null
+  const q = normName(queryName)
+  const exact = hits.find((h) => normName(h.name) === q)
+  if (exact) return exact
+  const overlap = hits.find((h) => {
+    const r = normName(h.name)
+    for (let i = 0; i + 4 <= q.length; i++) if (r.includes(q.slice(i, i + 4))) return true
+    return false
+  })
+  return overlap || null
+}
+
 export function splitArticle(content, maxChars = 1500) {
   if (content.length <= maxChars) return [content]
   const parts = []
