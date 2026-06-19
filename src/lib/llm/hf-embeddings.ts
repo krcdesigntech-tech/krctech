@@ -17,13 +17,15 @@ import type { InferenceProviderOrPolicy } from '@huggingface/inference'
 const EMBEDDING_MODEL = 'BAAI/bge-m3'
 export const EMBEDDING_DIM = 1024
 const BATCH_SIZE = 8
-const DEFAULT_TIMEOUT_MS = 12_000
-const QUERY_ATTEMPTS = 2
+// HF 무료 서버리스(hf-inference)는 콜드스타트/혼잡 시 50~70초까지 튀어 12초로는 자주 실패한다.
+// 기본 30초 + provider 'auto'(HF가 가용 provider로 라우팅) + 질의 재시도로 안정화.
+const DEFAULT_TIMEOUT_MS = 30_000
+const QUERY_ATTEMPTS = 3
 const BATCH_ATTEMPTS = 6
 
 const hf = () => new HfInference(process.env.HF_TOKEN)
 const provider = (): InferenceProviderOrPolicy =>
-  (process.env.HF_EMBEDDING_PROVIDER || 'hf-inference') as InferenceProviderOrPolicy
+  (process.env.HF_EMBEDDING_PROVIDER || 'auto') as InferenceProviderOrPolicy
 
 /** 저장 전 차원 검증. */
 export function assertEmbeddingDim(embedding: number[], dim = EMBEDDING_DIM): number[] {
