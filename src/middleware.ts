@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = pathname.startsWith('/login')
   const isApiRoute = pathname.startsWith('/api')
   const isCallbackRoute = pathname.startsWith('/auth/callback')
-  const isPublicRoute = pathname === '/'
+  const isPublicRoute = pathname === '/' || pathname === '/terms' || pathname === '/privacy'
   const isAdminRoute = pathname.startsWith('/admin')
 
   // Redirect unauthenticated users to login

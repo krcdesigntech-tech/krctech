@@ -4,7 +4,13 @@ import { Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-export function LegalSearchBox({ initialQuery = '' }: { initialQuery?: string }) {
+export function LegalSearchBox({
+  initialQuery = '',
+  basePath = '/legal/search',
+}: {
+  initialQuery?: string
+  basePath?: string
+}) {
   const [value, setValue] = useState(initialQuery)
   const router = useRouter()
 
@@ -14,7 +20,7 @@ export function LegalSearchBox({ initialQuery = '' }: { initialQuery?: string })
         e.preventDefault()
         const q = value.trim()
         if (!q) return
-        router.push(`/legal/search?q=${encodeURIComponent(q)}`)
+        router.push(`${basePath}?q=${encodeURIComponent(q)}`)
       }}
       className="flex items-center gap-2 bg-white border border-gray-200 rounded-card shadow-card px-4 py-3"
     >

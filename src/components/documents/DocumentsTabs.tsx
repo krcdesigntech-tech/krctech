@@ -13,7 +13,7 @@ interface Props {
 }
 
 export function DocumentsTabs({ isAdmin }: Props) {
-  const [tab, setTab] = useState<'uploads' | 'laws'>('uploads')
+  const [tab, setTab] = useState<'uploads' | 'laws'>('laws')
 
   return (
     <div>
@@ -32,8 +32,8 @@ export function DocumentsTabs({ isAdmin }: Props) {
       <div className="bg-white border-b border-gray-200 px-6">
         <div className="max-w-container mx-auto flex gap-0">
           {([
-            ['uploads', '업로드 문서'],
             ['laws', '법령'],
+            ['uploads', '업로드 문서'],
           ] as const).map(([key, label]) => (
             <button
               key={key}

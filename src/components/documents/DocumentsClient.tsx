@@ -44,7 +44,13 @@ export function DocumentsClient({ isAdmin, embedded = false }: DocumentsClientPr
   const { data, mutate, isLoading } = useSWR<{ documents: Document[] }>(
     `/api/documents?${params}`,
     fetcher,
-    { refreshInterval: 5000 }
+    {
+      // 업로드·처리 중인 문서가 있을 때만 폴링해 상태를 갱신하고, 그 외엔 멈춘다.
+      refreshInterval: (latest) =>
+        latest?.documents?.some((d) => d.status === 'uploading' || d.status === 'processing')
+          ? 5000
+          : 0,
+    }
   )
 
   const documents = data?.documents || []

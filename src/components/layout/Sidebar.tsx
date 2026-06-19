@@ -40,7 +40,7 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
   }
 
   return (
-    <aside className="fixed top-0 left-0 h-screen w-sidebar bg-white border-r border-gray-200 flex flex-col z-30">
+    <aside className="hidden md:flex fixed top-0 left-0 h-screen w-sidebar bg-white border-r border-gray-200 flex-col z-30">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-2.5">

@@ -41,3 +41,7 @@ next-env.d.ts
 
 # supabase CLI temp
 supabase/.temp/
+
+# 대용량 원본 참고서(법령 인제스트 소스)
+2026.*참고서*.pdf
+2026.*참고서*.hwpx

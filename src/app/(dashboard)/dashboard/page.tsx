@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser, getCurrentProfile } from '@/lib/supabase/auth'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/Card'
 import { FileText, MessageSquare, CheckCircle, Clock, Scale } from 'lucide-react'
@@ -9,18 +10,16 @@ import type { ChatSession } from '@/types/database.types'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, profile] = await Promise.all([getCurrentUser(), getCurrentProfile()])
 
   const [
     { data: sessions },
-    { data: profile },
     { count: totalDocs },
     { count: readyDocs },
     { count: processingDocs },
     { count: totalChats },
   ] = await Promise.all([
     supabase.from('chat_sessions').select('id, title, message_count, last_message_at, created_at, updated_at').eq('user_id', user!.id).order('updated_at', { ascending: false }).limit(3),
-    supabase.from('profiles').select('full_name, role').eq('id', user!.id).single(),
     supabase.from('documents').select('*', { count: 'exact', head: true }).eq('user_id', user!.id),
     supabase.from('documents').select('*', { count: 'exact', head: true }).eq('user_id', user!.id).eq('status', 'ready'),
     supabase.from('documents').select('*', { count: 'exact', head: true }).eq('user_id', user!.id).in('status', ['uploading', 'processing']),

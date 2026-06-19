@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -40,7 +41,7 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
+    <Card className="text-center">
       <h2 className="text-xl font-bold text-gray-900 mb-2">로그인</h2>
       <p className="text-sm text-gray-500 mb-8">
         KRCTech DocAI에 오신 것을 환영합니다.
@@ -59,14 +60,22 @@ export default function LoginPage() {
         size="lg"
         onClick={handleGoogleLogin}
         loading={loading}
-        className="w-full gap-3"
+        className="w-full gap-3 justify-center"
       >
         {!loading && <GoogleIcon />}
         Google로 로그인
       </Button>
 
       <p className="text-center text-xs text-gray-400 mt-6">
-        로그인 시 서비스 이용약관 및 개인정보 처리방침에 동의하는 것으로 간주합니다.
+        로그인 시{' '}
+        <Link href="/terms" className="text-primary hover:underline">
+          서비스 이용약관
+        </Link>{' '}
+        및{' '}
+        <Link href="/privacy" className="text-primary hover:underline">
+          개인정보 처리방침
+        </Link>
+        에 동의하는 것으로 간주합니다.
       </p>
     </Card>
   )
