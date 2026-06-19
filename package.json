@@ -11,7 +11,12 @@
     "reembed:documents": "tsx scripts/reembed-documents.mjs",
     "eval:law-qa": "tsx scripts/eval-law-qa.mjs",
     "check:llm-env": "tsx scripts/check-llm-env.mjs",
-    "check:openrouter-models": "tsx scripts/check-openrouter-models.mjs"
+    "check:openrouter-models": "tsx scripts/check-openrouter-models.mjs",
+    "agent:collect": "tsx scripts/agent/collect-signals.mjs",
+    "agent:improve": "tsx scripts/agent/improve.mjs",
+    "agent:apply": "tsx scripts/agent/apply-proposal.mjs",
+    "agent:eval": "tsx scripts/agent/run-eval.mjs",
+    "agent:grow-eval": "tsx scripts/agent/grow-eval.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1032.0",

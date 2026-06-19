@@ -4,7 +4,7 @@
  *   pnpm ingest:laws -- --pdf "2026.02.02 ...完.pdf" --hwpx "2026.02.23 ...完.hwpx"
  *   node --import tsx scripts/ingest-laws.mjs --hwpx "...hwpx" --dry-run
  *
- * 흐름: PDF/HWPX 추출 → 후보 병합 → 법제처 전문 보강 → 청크 → Gemini 768 임베딩
+ * 흐름: PDF/HWPX 추출 → 후보 병합 → 법제처 전문 보강 → 청크 → HF bge-m3 1024 임베딩
  *       → laws / law_chunks / law_chunk_sources / law_references / law_match_failures
  *
  * 필요한 env (.env.local 자동 로드): GEMINI_API_KEY, LAW_OPEN_API_OC,
@@ -426,8 +426,8 @@ async function main() {
     failure_count: stats.failure,
     embedded_count: stats.embedded,
     duration_ms: Date.now() - t0,
-    model: 'gemini-embedding-001',
-    embedding_dim: 768,
+    model: 'BAAI/bge-m3',
+    embedding_dim: 1024,
   })
 
   console.log('[ingest-laws] done', stats, `${Date.now() - t0}ms`)

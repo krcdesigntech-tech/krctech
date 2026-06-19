@@ -2,9 +2,11 @@
 
 import { useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Scale, Send, BookOpen } from 'lucide-react'
+import { Scale, Send, BookOpen, ThumbsUp, ThumbsDown, AlertCircle } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+
+type Rating = 'up' | 'down' | 'insufficient'
 
 interface LawSource {
   law_name: string
@@ -28,7 +30,23 @@ export function LawQAPanel() {
   const [sources, setSources] = useState<LawSource[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [qaLogId, setQaLogId] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<Rating | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+
+  async function sendFeedback(rating: Rating) {
+    if (!qaLogId || feedback) return
+    setFeedback(rating)
+    try {
+      await fetch('/api/legal/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ qaLogId, rating }),
+      })
+    } catch {
+      /* 피드백 실패는 조용히 무시 */
+    }
+  }
 
   async function ask(q: string) {
     const query = q.trim()
@@ -38,6 +56,8 @@ export function LawQAPanel() {
     setError(null)
     setAnswer('')
     setSources([])
+    setQaLogId(null)
+    setFeedback(null)
 
     const controller = new AbortController()
     abortRef.current = controller
@@ -74,6 +94,7 @@ export function LawQAPanel() {
             const ev = JSON.parse(payload)
             if (ev.type === 'sources') setSources(ev.sources || [])
             else if (ev.type === 'chunk') setAnswer((prev) => prev + ev.content)
+            else if (ev.type === 'done') setQaLogId(ev.qaLogId ?? null)
             else if (ev.type === 'error') setError(ev.message)
           } catch {
             /* ignore partial */
@@ -156,6 +177,37 @@ export function LawQAPanel() {
           ) : (
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <Spinner size="sm" /> 근거 조문을 검색하고 답변을 생성 중입니다…
+            </div>
+          )}
+
+          {/* 피드백 (자가학습 신호) */}
+          {answer && !loading && qaLogId && (
+            <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-2">
+              {feedback ? (
+                <span className="text-xs text-gray-500">피드백 감사합니다 ✓</span>
+              ) : (
+                <>
+                  <span className="text-xs text-gray-400 mr-1">이 답변이 도움이 되었나요?</span>
+                  <button
+                    onClick={() => sendFeedback('up')}
+                    className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-green-50 hover:border-green-200 hover:text-green-700 transition-colors"
+                  >
+                    <ThumbsUp size={13} /> 도움됨
+                  </button>
+                  <button
+                    onClick={() => sendFeedback('down')}
+                    className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-colors"
+                  >
+                    <ThumbsDown size={13} /> 부정확
+                  </button>
+                  <button
+                    onClick={() => sendFeedback('insufficient')}
+                    className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700 transition-colors"
+                  >
+                    <AlertCircle size={13} /> 근거 부족
+                  </button>
+                </>
+              )}
             </div>
           )}
         </Card>

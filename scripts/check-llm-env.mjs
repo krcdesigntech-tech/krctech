@@ -1,6 +1,6 @@
 /**
  * 배포 전 LLM/DB 연결 헬스체크.
- *   - Gemini embed 1회 (768 차원 확인)
+ *   - HF embed 1회 (1024 차원 확인)
  *   - OpenRouter non-stream 1회
  *   - OpenRouter stream 1회
  *   - Supabase match_law_chunks RPC 1회

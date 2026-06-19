@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'node:crypto'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { embedQuery } from '@/lib/llm/hf-embeddings'
 import { generateStream, type LlmMessage } from '@/lib/llm/openrouter'
 import { parseLegalQuery } from '@/lib/law/query-parser'
+import { resolveCanonicalName } from '@/lib/law/name-canonicalizer'
 
 export const maxDuration = 60
+
+const PROMPT_VERSION = 'legal-ask-v1'
+const sha = (s: string) => createHash('sha256').update(s).digest('hex')
 
 interface LawMatch {
   chunk_id: string
@@ -67,19 +72,22 @@ export async function POST(request: NextRequest) {
     queryEmbedding = await embedQuery(q)
   } catch (e) {
     return NextResponse.json(
-      { error: `임베딩 오류(Gemini): ${(e as Error).message}` },
+      { error: `임베딩 오류(HuggingFace): ${(e as Error).message}` },
       { status: 502 }
     )
   }
   const parsed = parseLegalQuery(q)
 
-  // 2) 하이브리드 법령 조문 검색
+  // 2) 하이브리드 법령 조문 검색 (법령명은 학습된 별칭(law_aliases)으로 정식명 확장)
   const service = await createServiceClient()
+  const lawNameFilter = parsed.lawName
+    ? await resolveCanonicalName(service, parsed.lawName)
+    : null
   const { data, error } = await service.rpc('match_law_chunks', {
     query_embedding: queryEmbedding,
     match_count: 12,
     query_text: q,
-    law_name_filter: parsed.lawName,
+    law_name_filter: lawNameFilter,
     article_filter: parsed.articleRef,
   })
   if (error) {
@@ -96,43 +104,76 @@ export async function POST(request: NextRequest) {
     snippet: m.content.slice(0, 160),
   }))
 
-  // 3) 스트리밍 답변
+  // 3) 스트리밍 답변 + 로깅
   const encoder = new TextEncoder()
   const messages = buildMessages(q, matches.slice(0, 8))
+  const startedAt = Date.now()
+
+  // qa_logs 기록 (자가학습 신호). 실패해도 응답에는 영향 없음.
+  async function logQa(answer: string, status: 'success' | 'error' | 'empty', errorCode?: string) {
+    try {
+      const { data: row } = await service
+        .from('qa_logs')
+        .insert({
+          user_id: user!.id,
+          question: q,
+          question_hash: sha(q.replace(/\s+/g, '')),
+          parsed,
+          sources,
+          source_snapshot: matches.slice(0, 3).map((m) => ({
+            law_name: m.law_name,
+            article_no: m.article_no,
+            content: m.content.slice(0, 400),
+          })),
+          top_score: matches[0]?.score ?? null,
+          answer: answer || null,
+          status,
+          error_code: errorCode ?? null,
+          embedding_provider: 'huggingface',
+          embedding_model: 'BAAI/bge-m3',
+          generation_provider: 'groq+openrouter',
+          model_used: 'auto-chain',
+          prompt_version: PROMPT_VERSION,
+          prompt_hash: sha(SYSTEM_PROMPT),
+          retrieval_count: matches.length,
+          latency_ms: Date.now() - startedAt,
+        })
+        .select('id')
+        .single()
+      return row?.id ?? null
+    } catch {
+      return null
+    }
+  }
 
   const readable = new ReadableStream({
     async start(controller) {
+      const send = (obj: unknown) =>
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`))
       try {
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ type: 'sources', sources })}\n\n`)
-        )
+        send({ type: 'sources', sources })
 
         if (matches.length === 0) {
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({
-                type: 'chunk',
-                content:
-                  '관련 근거 조문을 법령 코퍼스에서 찾지 못했습니다. 질문에 법령명이나 조문 번호를 포함하면 더 정확히 검색됩니다.',
-              })}\n\n`
-            )
-          )
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`))
+          const msg =
+            '관련 근거 조문을 법령 코퍼스에서 찾지 못했습니다. 질문에 법령명이나 조문 번호를 포함하면 더 정확히 검색됩니다.'
+          send({ type: 'chunk', content: msg })
+          const qaLogId = await logQa(msg, 'empty')
+          send({ type: 'done', qaLogId })
           controller.close()
           return
         }
 
+        let fullAnswer = ''
         for await (const token of generateStream(messages)) {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: token })}\n\n`)
-          )
+          fullAnswer += token
+          send({ type: 'chunk', content: token })
         }
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`))
+        const qaLogId = await logQa(fullAnswer, 'success')
+        send({ type: 'done', qaLogId })
       } catch (err) {
-        const msg = err instanceof Error ? err.message : '답변 생성 중 오류가 발생했습니다.'
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ type: 'error', message: msg })}\n\n`)
-        )
+        const message = err instanceof Error ? err.message : '답변 생성 중 오류가 발생했습니다.'
+        await logQa('', 'error', message.slice(0, 200))
+        send({ type: 'error', message })
       } finally {
         controller.close()
       }

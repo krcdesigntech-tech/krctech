@@ -1,4 +1,7 @@
 /**
+ * @deprecated 현재 스택은 HuggingFace `bge-m3`(1024차원, `@/lib/llm/hf-embeddings`)로 고정.
+ * 이 모듈은 사용하지 않으며 이력 보존용으로만 남긴다. 신규 코드는 hf-embeddings를 쓸 것.
+ *
  * Google Gemini embeddings (server-side only).
  *
  * 임베딩은 Gemini 전용 (`gemini-embedding-001`, 768차원).

@@ -1,6 +1,6 @@
 /**
- * 기존 document_chunks 를 Gemini 768 임베딩으로 재임베딩한다.
- * (00013 마이그레이션으로 embedding 컬럼이 768로 재생성된 뒤 1회 실행)
+ * 기존 document_chunks 를 HF bge-m3 1024 임베딩으로 재임베딩한다.
+ * (00016 마이그레이션으로 embedding 컬럼이 1024로 재생성된 뒤 1회 실행)
  *
  *   pnpm reembed:documents            # 전체
  *   pnpm reembed:documents -- --limit 500
