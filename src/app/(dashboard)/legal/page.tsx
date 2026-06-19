@@ -6,7 +6,6 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Scale, FileText, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { LegalSearchBox } from './LegalSearchBox'
 import { LawQAPanel } from '@/components/ai/LawQAPanel'
 import type { LegalCategory } from '@/types/law.types'
 
@@ -110,10 +109,6 @@ export default async function LegalIndexPage() {
             <p className="text-xs text-gray-500 font-medium">데이터 소스</p>
             <p className="text-sm font-bold text-gray-900 mt-2">법제처 OPEN API</p>
           </Card>
-        </div>
-
-        <div className="mb-8">
-          <LegalSearchBox />
         </div>
 
         {totalTopics === 0 && (

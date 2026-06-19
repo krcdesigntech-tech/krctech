@@ -12,7 +12,6 @@ const NAV_ITEMS = [
   { href: '/dashboard', label: '홈', iconSrc: '/icons/nav-home.png', adminOnly: false },
   { href: '/legal', label: '법령AI', iconSrc: '/icons/nav-legal-ai.png', adminOnly: false },
   { href: '/documents', label: '문서', iconSrc: '/icons/nav-documents.png', adminOnly: false },
-  { href: '/search', label: '검색', iconSrc: '/icons/nav-search.png', adminOnly: false },
 ]
 
 interface SidebarProps {

@@ -17,7 +17,6 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', label: '홈', iconSrc: '/icons/nav-home.png' },
   { href: '/legal', label: '법령AI', iconSrc: '/icons/nav-legal-ai.png' },
   { href: '/documents', label: '문서', iconSrc: '/icons/nav-documents.png' },
-  { href: '/search', label: '검색', iconSrc: '/icons/nav-search.png' },
   { href: '/settings', label: '설정', icon: Settings },
 ]
 
