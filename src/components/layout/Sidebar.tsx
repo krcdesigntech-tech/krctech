@@ -1,17 +1,18 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Home, FileText, Search, Settings, LogOut, ShieldCheck, Scale } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, Scale } from 'lucide-react'
 import { clsx } from 'clsx'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: '홈', icon: Home, adminOnly: false },
-  { href: '/legal', label: '법령AI', icon: Scale, adminOnly: false },
-  { href: '/documents', label: '문서', icon: FileText, adminOnly: false },
-  { href: '/search', label: '검색', icon: Search, adminOnly: false },
+  { href: '/dashboard', label: '홈', iconSrc: '/icons/nav-home.png', adminOnly: false },
+  { href: '/legal', label: '법령AI', iconSrc: '/icons/nav-legal-ai.png', adminOnly: false },
+  { href: '/documents', label: '문서', iconSrc: '/icons/nav-documents.png', adminOnly: false },
+  { href: '/search', label: '검색', iconSrc: '/icons/nav-search.png', adminOnly: false },
 ]
 
 interface SidebarProps {
@@ -44,9 +45,15 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">K</span>
-          </div>
+          <Image
+            src="/icons/brand-mark.png"
+            alt=""
+            aria-hidden="true"
+            width={36}
+            height={36}
+            className="h-9 w-9 shrink-0 rounded-lg object-cover shadow-sm"
+            priority
+          />
           <div>
             <p className="text-sm font-bold text-gray-900 leading-tight">KRCTech</p>
             <p className="text-xs text-gray-400 leading-tight">DocAI</p>
@@ -56,7 +63,7 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.filter(({ adminOnly }) => !adminOnly || role === 'admin').map(({ href, label, icon: Icon }) => {
+        {NAV_ITEMS.filter(({ adminOnly }) => !adminOnly || role === 'admin').map(({ href, label, iconSrc }) => {
           const isActive = isNavActive(href, pathname)
           return (
             <Link
@@ -69,7 +76,17 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
-              <Icon size={18} />
+              <Image
+                src={iconSrc}
+                alt=""
+                aria-hidden="true"
+                width={28}
+                height={28}
+                className={clsx(
+                  'h-7 w-7 shrink-0 rounded-md object-cover transition-opacity',
+                  isActive ? 'opacity-100' : 'opacity-80'
+                )}
+              />
               {label}
             </Link>
           )

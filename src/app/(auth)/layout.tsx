@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export const dynamic = 'force-dynamic'
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -12,9 +14,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="relative z-10 w-full max-w-[420px]">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-xl mb-4">
-            <span className="text-white font-bold text-xl">K</span>
-          </div>
+          <Image
+            src="/icons/brand-mark.png"
+            alt=""
+            aria-hidden="true"
+            width={56}
+            height={56}
+            className="mx-auto mb-4 h-14 w-14 rounded-xl object-cover shadow-lg shadow-black/20"
+            priority
+          />
           <h1 className="text-2xl font-bold text-white">토목설계 문서 AI 플랫폼</h1>
         </div>
         {children}
