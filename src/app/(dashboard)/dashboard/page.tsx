@@ -30,16 +30,17 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <Header title="홈" />
+      <Header
+        title="KRC 조사설계 법령 및 인허가 검토 가이드"
+        subtitle={`안녕하세요, ${profile?.full_name || user?.email?.split('@')[0]}님 환영합니다`}
+        rightLabel="한국농어촌공사 기후대응처"
+      />
       <div className="max-w-container mx-auto px-6 py-6">
 
         {/* Welcome */}
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900">
-            안녕하세요, {profile?.full_name || user?.email?.split('@')[0]}님 👋
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            토목설계 문서를 업로드하고, 관계법령을 AI에게 질문해보세요.
+          <p className="text-sm text-gray-500">
+            조사설계 추진 관련 궁금한 사항을 검색하거나 AI에게 질문해보세요.
           </p>
         </div>
 
