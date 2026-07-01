@@ -2,22 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 학교안심 알림장 — OFL 무료 한글 폰트 (jsDelivr CDN) */
+@font-face {
+  font-family: 'Hakgyoansim Allimjang';
+  font-weight: 300 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/fonts-archive/HakgyoansimAllimjang/HakgyoansimAllimjang-R.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/fonts-archive/HakgyoansimAllimjang/HakgyoansimAllimjang-R.woff') format('woff');
+}
+@font-face {
+  font-family: 'Hakgyoansim Allimjang';
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/fonts-archive/HakgyoansimAllimjang/HakgyoansimAllimjang-B.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/fonts-archive/HakgyoansimAllimjang/HakgyoansimAllimjang-B.woff') format('woff');
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
-  font-family: var(--font-noto), 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Hakgyoansim Allimjang', var(--font-noto), 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: #faf9f5;
   color: #141413;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Editorial display headings — warm serif, never bold, per design.md */
+/* Display headings use the same brand font, tracked slightly tighter */
 @layer base {
   h1, h2, h3 {
-    font-family: var(--font-noto-serif), 'Noto Serif KR', Georgia, serif;
+    font-family: 'Hakgyoansim Allimjang', var(--font-noto), 'Noto Sans KR', sans-serif;
     letter-spacing: -0.01em;
   }
 }

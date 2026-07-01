@@ -23,7 +23,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             className="mx-auto mb-4 h-14 w-14 rounded-xl object-cover shadow-lg shadow-black/20"
             priority
           />
-          <h1 className="text-2xl font-bold text-white">토목설계 문서 AI 플랫폼</h1>
+          <p className="text-[11px] font-medium text-white/70 tracking-wide mb-1">한국농어촌공사 기후대응처</p>
+          <h1 className="text-2xl font-bold text-white">KRC 조사설계 법령 및 인허가 검토 가이드</h1>
         </div>
         {children}
       </div>

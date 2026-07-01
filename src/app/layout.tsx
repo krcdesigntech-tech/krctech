@@ -19,7 +19,7 @@ const notoSerifKr = Noto_Serif_KR({
 });
 
 export const metadata: Metadata = {
-  title: "KRCTech DocAI - 토목설계 문서 AI 플랫폼",
+  title: "KRC 조사설계 법령 및 인허가 검토 가이드",
   description: "인허가 절차, 설계기준 등 토목설계 업무 문서를 업로드하고 AI에게 질문하세요.",
 };
 

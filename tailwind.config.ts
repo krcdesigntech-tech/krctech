@@ -72,8 +72,8 @@ const config: Config = {
         white: "#faf9f5",
       },
       fontFamily: {
-        sans: ["var(--font-noto)", "Noto Sans KR", "sans-serif"],
-        serif: ["var(--font-noto-serif)", "Noto Serif KR", "Georgia", "serif"],
+        sans: ["Hakgyoansim Allimjang", "var(--font-noto)", "Noto Sans KR", "sans-serif"],
+        serif: ["Hakgyoansim Allimjang", "var(--font-noto)", "Noto Sans KR", "sans-serif"],
       },
       borderRadius: {
         card: "12px",

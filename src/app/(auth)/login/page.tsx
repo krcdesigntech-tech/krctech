@@ -76,7 +76,7 @@ export default function LoginPage() {
     <Card className="text-center">
       <h2 className="text-xl font-bold text-gray-900 mb-2">로그인</h2>
       <p className="text-sm text-gray-500 mb-8">
-        KRCTech DocAI에 오신 것을 환영합니다.
+        KRC 조사설계 법령 및 인허가 검토 가이드에 오신 것을 환영합니다.
         <br />Google 계정으로 로그인하세요.
       </p>
 

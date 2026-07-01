@@ -41,8 +41,11 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
 
   return (
     <aside className="hidden md:flex fixed top-0 left-0 h-screen w-sidebar bg-white border-r border-gray-200 flex-col z-30">
-      {/* Logo */}
+      {/* Org label + Logo */}
       <div className="px-5 py-5 border-b border-gray-100">
+        <p className="text-[10px] font-medium text-gray-400 tracking-wide leading-tight mb-2">
+          한국농어촌공사 기후대응처
+        </p>
         <div className="flex items-center gap-2.5">
           <Image
             src="/icons/brand-mark.png"
@@ -53,10 +56,9 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
             className="h-9 w-9 shrink-0 rounded-lg object-cover shadow-sm"
             priority
           />
-          <div>
-            <p className="font-serif text-sm font-medium text-gray-900 leading-tight">KRCTech</p>
-            <p className="text-xs text-gray-400 leading-tight">DocAI</p>
-          </div>
+          <p className="font-serif text-[15px] font-semibold text-gray-900 leading-snug">
+            KRC 조사설계 법령 및 인허가 검토 가이드
+          </p>
         </div>
       </div>
 
