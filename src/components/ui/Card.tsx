@@ -9,7 +9,7 @@ export function Card({ hover, padding = 'md', className, children, ...props }: C
   return (
     <div
       className={clsx(
-        'bg-white border border-gray-200 rounded-card shadow-card',
+        'bg-white border border-gray-200 rounded-card',
         hover && 'hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-150 cursor-pointer',
         padding === 'none' && '',
         padding === 'sm' && 'p-4',

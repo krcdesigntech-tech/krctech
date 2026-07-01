@@ -8,10 +8,18 @@
 
 body {
   font-family: var(--font-noto), 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #F9FAFB;
-  color: #111827;
+  background-color: #faf9f5;
+  color: #141413;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial display headings — warm serif, never bold, per design.md */
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-noto-serif), 'Noto Serif KR', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
 }
 
 /* Scrollbar */
@@ -20,14 +28,14 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F3F4F6;
+  background: #f5f0e8;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
+  background: #d7cec0;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+  background: #a39d8f;
 }
 
 /* Custom utilities */
@@ -43,10 +51,10 @@ body {
 
 /* Markdown styles for chat responses */
 .prose-chat h1, .prose-chat h2, .prose-chat h3 {
-  font-weight: 600;
+  font-weight: 500;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
-  color: #111827;
+  color: #141413;
 }
 .prose-chat h1 { font-size: 1.25rem; }
 .prose-chat h2 { font-size: 1.125rem; }
@@ -58,15 +66,15 @@ body {
 }
 .prose-chat li { margin-bottom: 0.25rem; }
 .prose-chat code {
-  background: #F3F4F6;
+  background: #efe9de;
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
   font-size: 0.875rem;
-  font-family: 'Courier New', monospace;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
 }
 .prose-chat pre {
-  background: #1F2937;
-  color: #F9FAFB;
+  background: #181715;
+  color: #faf9f5;
   padding: 1rem;
   border-radius: 8px;
   overflow-x: auto;
@@ -78,9 +86,9 @@ body {
   color: inherit;
 }
 .prose-chat blockquote {
-  border-left: 3px solid #3366FF;
+  border-left: 3px solid #cc785c;
   padding-left: 1rem;
-  color: #4B5563;
+  color: #6c6a64;
   font-style: italic;
   margin-bottom: 0.75rem;
 }
@@ -91,13 +99,13 @@ body {
   font-size: 0.875rem;
 }
 .prose-chat th, .prose-chat td {
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e6dfd8;
   padding: 0.5rem 0.75rem;
   text-align: left;
 }
 .prose-chat th {
-  background: #F3F4F6;
+  background: #f5f0e8;
   font-weight: 600;
 }
 .prose-chat strong { font-weight: 600; }
-.prose-chat a { color: #3366FF; text-decoration: underline; }
+.prose-chat a { color: #cc785c; text-decoration: underline; }

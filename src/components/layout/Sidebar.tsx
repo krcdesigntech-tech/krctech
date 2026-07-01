@@ -54,7 +54,7 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
             priority
           />
           <div>
-            <p className="text-sm font-bold text-gray-900 leading-tight">KRCTech</p>
+            <p className="font-serif text-sm font-medium text-gray-900 leading-tight">KRCTech</p>
             <p className="text-xs text-gray-400 leading-tight">DocAI</p>
           </div>
         </div>

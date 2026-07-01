@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR } from "next/font/google";
+import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import "./globals.css";
 
 const notoSansKr = Noto_Sans_KR({
@@ -8,6 +8,14 @@ const notoSansKr = Noto_Sans_KR({
   display: "swap",
   preload: false,
   variable: "--font-noto",
+});
+
+const notoSerifKr = Noto_Serif_KR({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  preload: false,
+  variable: "--font-noto-serif",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={notoSansKr.variable}>
+    <html lang="ko" className={`${notoSansKr.variable} ${notoSerifKr.variable}`}>
       <body className="antialiased">
         {children}
       </body>
