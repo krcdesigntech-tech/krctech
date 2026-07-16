@@ -16,7 +16,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    'bg-primary text-white hover:bg-primary-hover active:bg-primary-700 disabled:bg-gray-300 disabled:text-gray-500',
+    'bg-primary text-white hover:bg-primary-hover active:bg-primary-700 disabled:bg-primary-disabled disabled:text-muted-soft',
   secondary:
     'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:bg-gray-100 disabled:text-gray-400',
   ghost:
@@ -49,7 +49,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       disabled={disabled || loading}
       className={clsx(
-        'inline-flex items-center justify-center font-semibold rounded-btn transition-colors',
+        'inline-flex items-center justify-center font-medium rounded-btn transition-colors',
         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1',
         'disabled:cursor-not-allowed',
         variantClasses[variant],

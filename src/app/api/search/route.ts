@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { embedText } from '@/lib/huggingface/embeddings'
+import { embedText } from '@/lib/llm/hf-embeddings'
 import { retrieveChunks } from '@/lib/rag/retriever'
 
 export const maxDuration = 30

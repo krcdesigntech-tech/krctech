@@ -1,0 +1,23 @@
+{
+  "_note": "법령 Q&A 검색/답변 품질 평가 세트. 운영 전 도메인 전문가가 30문항 이상으로 확장하고 expected_article을 실제 조문으로 보정할 것.",
+  "items": [
+    { "question": "지표조사 대상과 근거 조문은?", "expected_law": "매장유산 보호 및 조사에 관한 법률", "expected_article": null, "keywords": ["지표조사", "대상"] },
+    { "question": "매장유산 발굴조사 절차 근거는?", "expected_law": "매장유산 보호 및 조사에 관한 법률", "expected_article": null, "keywords": ["발굴"] },
+    { "question": "전략환경영향평가 대상계획은?", "expected_law": "환경영향평가법", "expected_article": null, "keywords": ["전략환경영향평가", "대상"] },
+    { "question": "환경영향평가법 제9조 내용은?", "expected_law": "환경영향평가법", "expected_article": "제9조", "keywords": ["전략환경영향평가"] },
+    { "question": "소규모 환경영향평가 대상 사업은?", "expected_law": "환경영향평가법", "expected_article": null, "keywords": ["소규모"] },
+    { "question": "생태계보전부담금 산정 기준은?", "expected_law": "자연환경보전법", "expected_article": null, "keywords": ["생태계보전부담금"] },
+    { "question": "하천점용허가 신청 근거는?", "expected_law": "하천법", "expected_article": null, "keywords": ["점용허가"] },
+    { "question": "하천수 사용허가 절차는?", "expected_law": "하천법", "expected_article": null, "keywords": ["사용허가"] },
+    { "question": "공유수면 점용·사용 허가 근거는?", "expected_law": "공유수면 관리 및 매립에 관한 법률", "expected_article": null, "keywords": ["점용", "사용"] },
+    { "question": "농지전용허가와 농지보전부담금 근거는?", "expected_law": "농지법", "expected_article": null, "keywords": ["전용", "부담금"] },
+    { "question": "산지전용허가 대상과 절차는?", "expected_law": "산지관리법", "expected_article": null, "keywords": ["산지전용"] },
+    { "question": "국토의 계획 및 이용에 관한 법률상 개발행위허가 기준은?", "expected_law": "국토의 계획 및 이용에 관한 법률", "expected_article": null, "keywords": ["개발행위허가"] },
+    { "question": "도시·군관리계획 입안 절차는?", "expected_law": "국토의 계획 및 이용에 관한 법률", "expected_article": null, "keywords": ["도시군관리계획", "입안"] },
+    { "question": "건설기술 진흥법상 설계의 안전성 검토 대상은?", "expected_law": "건설기술 진흥법", "expected_article": null, "keywords": ["안전성 검토"] },
+    { "question": "지하안전평가 대상 사업은?", "expected_law": "지하안전관리에 관한 특별법", "expected_article": null, "keywords": ["지하안전평가"] },
+    { "question": "재해영향평가 협의 대상은?", "expected_law": "자연재해대책법", "expected_article": null, "keywords": ["재해영향평가"] },
+    { "question": "문화유산 보존지역 내 행위 제한 근거는?", "expected_law": "문화유산의 보존 및 활용에 관한 법률", "expected_article": null, "keywords": ["보존지역", "현상변경"] },
+    { "question": "공익사업을 위한 토지 보상 절차 근거는?", "expected_law": "공익사업을 위한 토지 등의 취득 및 보상에 관한 법률", "expected_article": null, "keywords": ["보상", "취득"] }
+  ]
+}

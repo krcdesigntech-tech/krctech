@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Scale, FileText, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { LegalSearchBox } from './LegalSearchBox'
+import { LawQAPanel } from '@/components/ai/LawQAPanel'
 import type { LegalCategory } from '@/types/law.types'
 
 const CATEGORY_ORDER: LegalCategory[] = [
@@ -74,7 +74,7 @@ export default async function LegalIndexPage() {
 
   return (
     <div>
-      <Header title="관계법령" />
+      <Header title="법령AI" />
       <div className="max-w-container mx-auto px-6 py-6">
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -82,9 +82,14 @@ export default async function LegalIndexPage() {
             조사설계 관계법령 인덱스
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            「조사설계 관계법령 및 행정처리 실무 참고서」의 업무 항목과 연결된 법령을 법제처
-            국가법령정보 OPEN API로 실시간 조회합니다.
+            질문을 입력하면 법령 코퍼스(법제처 조문)를 근거로 답변하고, 아래에서 업무 항목별
+            법령 인덱스도 확인할 수 있습니다.
           </p>
+        </div>
+
+        {/* 법령 Q&A — 질문에 따라 근거 조문 기반 답변 */}
+        <div className="mb-8">
+          <LawQAPanel />
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -104,10 +109,6 @@ export default async function LegalIndexPage() {
             <p className="text-xs text-gray-500 font-medium">데이터 소스</p>
             <p className="text-sm font-bold text-gray-900 mt-2">법제처 OPEN API</p>
           </Card>
-        </div>
-
-        <div className="mb-8">
-          <LegalSearchBox />
         </div>
 
         {totalTopics === 0 && (

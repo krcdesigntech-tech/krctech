@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { getR2ObjectBuffer } from '@/lib/r2/client'
 import { parseDocument, getFileTypeFromExtension, SupportedFileType } from '@/lib/document-processor'
 import { chunkText } from '@/lib/document-processor/chunker'
-import { embedTexts } from '@/lib/huggingface/embeddings'
+import { embedTexts } from '@/lib/llm/hf-embeddings'
 
 export const maxDuration = 60
 
@@ -17,6 +17,11 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin') {
+    return NextResponse.json({ error: '권한이 없습니다.' }, { status: 403 })
+  }
 
   // Get document metadata
   const { data: doc } = await supabase

@@ -7,6 +7,9 @@ export async function GET(request: NextRequest) {
 
   if (!user) return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 })
 
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isAdmin = profile?.role === 'admin'
+
   const { searchParams } = new URL(request.url)
   const category = searchParams.get('category')
   const status = searchParams.get('status')
@@ -19,7 +22,11 @@ export async function GET(request: NextRequest) {
     .order('created_at', { ascending: false })
 
   if (category) query = query.eq('category', category)
-  if (status) query = query.eq('status', status)
+  if (!isAdmin) {
+    query = query.eq('status', 'ready')
+  } else {
+    if (status) query = query.eq('status', status)
+  }
   if (search) query = query.ilike('original_name', `%${search}%`)
 
   const { data, error } = await query

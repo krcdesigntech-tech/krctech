@@ -1,20 +1,16 @@
 export const dynamic = 'force-dynamic'
 
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser, getCurrentProfile } from '@/lib/supabase/auth'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { MobileNav } from '@/components/layout/MobileNav'
 import { PageViewTracker } from '@/components/PageViewTracker'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
 
   let role: 'engineer' | 'manager' | 'admin' = 'engineer'
   if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    const profile = await getCurrentProfile()
     if (profile?.role === 'admin' || profile?.role === 'manager') {
       role = profile.role
     }
@@ -24,9 +20,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="min-h-screen bg-gray-50">
       <PageViewTracker />
       <Sidebar role={role} />
-      <div className="pl-sidebar">
+      <div className="md:pl-sidebar pb-16 md:pb-0">
         {children}
       </div>
+      <MobileNav />
     </div>
   )
 }

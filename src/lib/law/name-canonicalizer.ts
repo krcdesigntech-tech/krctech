@@ -54,3 +54,29 @@ export function canonicalizeLawName(input: string): string {
 export function lawNamesEquivalent(a: string, b: string): boolean {
   return normalizeLawName(a) === normalizeLawName(b)
 }
+
+/**
+ * DB `law_aliases`까지 병합한 비동기 정식명 해석 (자가학습 별칭 활용).
+ * 순서: ABBREV_MAP(코드) → law_aliases(학습된 별칭) → 원본.
+ * client는 supabase client(서버/서비스). 실패해도 원본을 반환(검색 자체는 동작).
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export async function resolveCanonicalName(client: any, input: string): Promise<string> {
+  const trimmed = (input || '').trim()
+  if (!trimmed) return trimmed
+  const mapped = canonicalizeLawName(trimmed)
+  if (mapped !== trimmed) return mapped // ABBREV_MAP 적중
+  try {
+    const norm = normalizeLawName(trimmed)
+    const { data } = await client.from('law_aliases').select('alias, canonical_law_name')
+    for (const row of data ?? []) {
+      if (normalizeLawName(row.alias) === norm && row.canonical_law_name) {
+        return row.canonical_law_name
+      }
+    }
+  } catch {
+    /* DB 조회 실패 시 원본 사용 */
+  }
+  return trimmed
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */

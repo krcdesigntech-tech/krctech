@@ -1,22 +1,32 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, MessageSquare, Search, Settings, LogOut, ShieldCheck, Scale } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, Scale } from 'lucide-react'
 import { clsx } from 'clsx'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: '대시보드', icon: LayoutDashboard, adminOnly: false },
-  { href: '/documents', label: '문서 관리', icon: FileText, adminOnly: true },
-  { href: '/legal', label: '관계법령', icon: Scale, adminOnly: false },
-  { href: '/chat', label: 'AI 질문', icon: MessageSquare, adminOnly: false },
-  { href: '/search', label: '문서 검색', icon: Search, adminOnly: false },
+  { href: '/dashboard', label: '홈', iconSrc: '/icons/nav-home.png', adminOnly: false },
+  { href: '/legal', label: '법령AI', iconSrc: '/icons/nav-legal-ai.png', adminOnly: false },
+  { href: '/documents', label: '문서', iconSrc: '/icons/nav-documents.png', adminOnly: false },
 ]
 
 interface SidebarProps {
   role?: 'engineer' | 'manager' | 'admin'
+}
+
+function isNavActive(href: string, pathname: string): boolean {
+  if (href === '/ai') {
+    return (
+      pathname === '/ai' ||
+      pathname.startsWith('/ai/') ||
+      pathname.startsWith('/chat')
+    )
+  }
+  return pathname === href || pathname.startsWith(`${href}/`)
 }
 
 export function Sidebar({ role = 'engineer' }: SidebarProps) {
@@ -30,24 +40,32 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
   }
 
   return (
-    <aside className="fixed top-0 left-0 h-screen w-sidebar bg-white border-r border-gray-200 flex flex-col z-30">
-      {/* Logo */}
+    <aside className="hidden md:flex fixed top-0 left-0 h-screen w-sidebar bg-white border-r border-gray-200 flex-col z-30">
+      {/* Org label + Logo */}
       <div className="px-5 py-5 border-b border-gray-100">
+        <p className="text-[10px] font-medium text-gray-400 tracking-wide leading-tight mb-2">
+          한국농어촌공사 기후대응처
+        </p>
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">K</span>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-gray-900 leading-tight">KRCTech</p>
-            <p className="text-xs text-gray-400 leading-tight">DocAI</p>
-          </div>
+          <Image
+            src="/icons/brand-mark.png"
+            alt=""
+            aria-hidden="true"
+            width={36}
+            height={36}
+            className="h-9 w-9 shrink-0 rounded-lg object-cover shadow-sm"
+            priority
+          />
+          <p className="font-serif text-[15px] font-semibold text-gray-900 leading-snug">
+            KRC 조사설계 법령 및 인허가 검토 가이드
+          </p>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.filter(({ adminOnly }) => !adminOnly || role === 'admin').map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href || pathname.startsWith(href + '/')
+        {NAV_ITEMS.filter(({ adminOnly }) => !adminOnly || role === 'admin').map(({ href, label, iconSrc }) => {
+          const isActive = isNavActive(href, pathname)
           return (
             <Link
               key={href}
@@ -59,7 +77,17 @@ export function Sidebar({ role = 'engineer' }: SidebarProps) {
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
-              <Icon size={18} />
+              <Image
+                src={iconSrc}
+                alt=""
+                aria-hidden="true"
+                width={28}
+                height={28}
+                className={clsx(
+                  'h-7 w-7 shrink-0 rounded-md object-cover transition-opacity',
+                  isActive ? 'opacity-100' : 'opacity-80'
+                )}
+              />
               {label}
             </Link>
           )

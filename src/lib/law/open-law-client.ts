@@ -19,7 +19,7 @@
 import { articleRefToJo, parseArticleRef } from './article-code'
 import type { AdminRulePayload, LawArticle, LawPayload, LawSummary } from '@/types/law.types'
 
-const BASE = 'https://open.law.go.kr/DRF'
+const BASE = 'https://www.law.go.kr/DRF'
 
 function getOC(): string {
   const oc = process.env.LAW_OPEN_API_OC

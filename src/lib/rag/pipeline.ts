@@ -1,5 +1,5 @@
-import { embedText } from '@/lib/huggingface/embeddings'
-import { generateStream } from '@/lib/huggingface/generation'
+import { embedText } from '@/lib/llm/hf-embeddings'
+import { generateStream } from '@/lib/llm/openrouter'
 import { retrieveChunks } from './retriever'
 import { buildMessages } from './prompt-builder'
 import { buildLegalContext, type LegalContextBlock } from '@/lib/law/rag-augmentor'

@@ -26,7 +26,7 @@ export function Toast({ toasts, remove }: { toasts: ToastItem[]; remove: (id: st
         <div
           key={t.id}
           className={clsx(
-            'flex items-start gap-3 px-4 py-3 rounded-card shadow-card border',
+            'flex items-start gap-3 px-4 py-3 rounded-card shadow-modal border',
             'bg-white min-w-[280px] max-w-sm animate-in slide-in-from-right-4'
           )}
         >

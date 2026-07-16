@@ -2,11 +2,19 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { AlertTriangle, ExternalLink, Copy, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import {
+  detectInAppBrowser,
+  buildExternalOpenUrl,
+  IN_APP_BROWSER_LABEL,
+  type InAppBrowser,
+} from '@/lib/in-app-browser'
 
 function GoogleIcon() {
   return (
@@ -25,8 +33,14 @@ export default function LoginPage() {
   const hasError = searchParams.get('error') === 'auth_callback_failed'
 
   const [loading, setLoading] = useState(false)
+  const [inApp, setInApp] = useState<InAppBrowser>(null)
+  const [copied, setCopied] = useState(false)
 
   const supabase = createClient()
+
+  useEffect(() => {
+    setInApp(detectInAppBrowser(navigator.userAgent))
+  }, [])
 
   async function handleGoogleLogin() {
     setLoading(true)
@@ -39,11 +53,30 @@ export default function LoginPage() {
     // Page redirects to Google — loading state stays true
   }
 
+  function handleOpenExternal() {
+    const target = buildExternalOpenUrl(inApp, window.location.href)
+    if (target) {
+      window.location.href = target
+    } else {
+      handleCopyLink()
+    }
+  }
+
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // 클립보드 권한이 없으면 사용자가 주소창에서 직접 복사하도록 둔다
+    }
+  }
+
   return (
-    <Card>
+    <Card className="text-center">
       <h2 className="text-xl font-bold text-gray-900 mb-2">로그인</h2>
       <p className="text-sm text-gray-500 mb-8">
-        KRCTech DocAI에 오신 것을 환영합니다.
+        KRC 조사설계 법령 및 인허가 검토 가이드에 오신 것을 환영합니다.
         <br />Google 계정으로 로그인하세요.
       </p>
 
@@ -53,20 +86,64 @@ export default function LoginPage() {
         </p>
       )}
 
+      {inApp && (
+        <div className="text-left bg-status-warning-light border border-status-warning/30 rounded-btn p-4 mb-4">
+          <div className="flex items-start gap-2 mb-2">
+            <AlertTriangle size={18} className="text-status-warning shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">
+                {IN_APP_BROWSER_LABEL[inApp]} 브라우저에서는 구글 로그인이 안 됩니다
+              </p>
+              <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                Google 보안 정책으로 인앱 브라우저에서는 로그인이 차단됩니다. 아래 버튼으로
+                Chrome·Safari 등 기본 브라우저에서 열어 로그인해 주세요.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="md"
+            onClick={handleOpenExternal}
+            icon={<ExternalLink size={16} />}
+            className="w-full justify-center mt-2"
+          >
+            기본 브라우저로 열기
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="md"
+            onClick={handleCopyLink}
+            icon={copied ? <Check size={16} /> : <Copy size={16} />}
+            className="w-full justify-center mt-1.5"
+          >
+            {copied ? '주소가 복사되었습니다' : '주소 복사'}
+          </Button>
+        </div>
+      )}
+
       <Button
         type="button"
         variant="secondary"
         size="lg"
         onClick={handleGoogleLogin}
         loading={loading}
-        className="w-full gap-3"
+        className="w-full gap-3 justify-center"
       >
         {!loading && <GoogleIcon />}
         Google로 로그인
       </Button>
 
       <p className="text-center text-xs text-gray-400 mt-6">
-        로그인 시 서비스 이용약관 및 개인정보 처리방침에 동의하는 것으로 간주합니다.
+        로그인 시{' '}
+        <Link href="/terms" className="text-primary hover:underline">
+          서비스 이용약관
+        </Link>{' '}
+        및{' '}
+        <Link href="/privacy" className="text-primary hover:underline">
+          개인정보 처리방침
+        </Link>
+        에 동의하는 것으로 간주합니다.
       </p>
     </Card>
   )
